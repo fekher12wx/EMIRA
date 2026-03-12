@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { FaBolt, FaTools, FaCog, FaIndustry, FaShieldAlt, FaPhoneAlt, FaChevronRight, FaCheckCircle, FaStar, FaHandshake } from 'react-icons/fa'
 import { HiLightningBolt } from 'react-icons/hi'
+import { useLanguage } from '../i18n/LanguageContext'
 import ScrollReveal from '../components/ScrollReveal'
 import './Home.css'
 
@@ -35,39 +36,6 @@ function Counter({ end, suffix = '', duration = 2000 }) {
     return <span ref={ref}>{count}{suffix}</span>
 }
 
-const services = [
-    {
-        icon: <FaBolt />,
-        title: 'Installation Électrique',
-        desc: 'Installations et entretien électriques bâtiments et industrielles MT/BT.',
-    },
-    {
-        icon: <FaTools />,
-        title: 'Armoires Électriques',
-        desc: 'Montage et rénovation de tableaux, armoires et coffrets électriques.',
-    },
-    {
-        icon: <FaCog />,
-        title: 'Rebobinage Moteurs',
-        desc: 'Rebobinage et entretien des moteurs électriques et alternateurs.',
-    },
-    {
-        icon: <FaIndustry />,
-        title: 'Dépannage Industriel',
-        desc: 'Assistance technique et dépannage d\'urgence des usines 24/7.',
-    },
-    {
-        icon: <HiLightningBolt />,
-        title: 'Groupes Électrogènes',
-        desc: 'Maintenance et entretien électro-mécanique groupes électrogènes.',
-    },
-    {
-        icon: <FaShieldAlt />,
-        title: 'Qualité de Puissance',
-        desc: 'Amélioration de la qualité, traitement des harmoniques, économie d\'énergie.',
-    },
-]
-
 const clients = [
     'STEG', 'Tunisie Télécom', 'ONAS', 'ONT',
     'Ministère de la Santé', 'Ministère de l\'Agriculture',
@@ -75,6 +43,17 @@ const clients = [
 ]
 
 export default function Home() {
+    const { t } = useLanguage()
+
+    const services = [
+        { icon: <FaBolt />, title: t('home.serviceElec'), desc: t('home.serviceElecDesc') },
+        { icon: <FaTools />, title: t('home.serviceArmoires'), desc: t('home.serviceArmoiresDesc') },
+        { icon: <FaCog />, title: t('home.serviceRebobinage'), desc: t('home.serviceRebobinageDesc') },
+        { icon: <FaIndustry />, title: t('home.serviceDepannage'), desc: t('home.serviceDepannageDesc') },
+        { icon: <HiLightningBolt />, title: t('home.serviceGroupes'), desc: t('home.serviceGroupesDesc') },
+        { icon: <FaShieldAlt />, title: t('home.serviceQualite'), desc: t('home.serviceQualiteDesc') },
+    ]
+
     return (
         <div className="home">
             {/* ====== HERO ====== */}
@@ -86,32 +65,28 @@ export default function Home() {
                 <div className="container hero-content">
                     <div className="hero-text">
                         <div className="hero-badge">
-                            <FaBolt /> Depuis 1987 — Plus de 35 ans d'expertise
+                            <FaBolt /> {t('home.badge')}
                         </div>
                         <h1>
-                            Expert en <span className="text-red">Solutions</span>{' '}
-                            <span className="text-red">Électriques</span> Industrielles
+                            {t('home.heroTitle1')}<span className="text-red">{t('home.heroTitle2')}</span>{t('home.heroTitle3')}
+                            <span className="text-red">{t('home.heroTitle4')}</span>{t('home.heroTitle5')}
                         </h1>
-                        <p className="hero-subtitle">
-                            EMIRA — Electro Maintenance Intervention Rapide. Votre partenaire de confiance
-                            pour l'installation, la maintenance et le dépannage électrique en Tunisie.
-                            Agréé STEG et B2/C3.
-                        </p>
+                        <p className="hero-subtitle">{t('home.heroSubtitle')}</p>
                         <div className="hero-actions">
                             <Link to="/services" className="btn btn-primary">
-                                Nos Services <FaChevronRight />
+                                {t('home.ourServices')} <FaChevronRight />
                             </Link>
                             <Link to="/contact" className="btn btn-outline">
-                                Contactez-Nous
+                                {t('home.contactUs')}
                             </Link>
                         </div>
                         <div className="hero-trust">
                             <FaCheckCircle />
-                            <span>Agrément B2/C3</span>
+                            <span>{t('home.agrementB2')}</span>
                             <FaCheckCircle />
-                            <span>Agréé STEG</span>
+                            <span>{t('home.agreedSTEG')}</span>
                             <FaCheckCircle />
-                            <span>Urgence 24/7</span>
+                            <span>{t('home.urgency')}</span>
                         </div>
                     </div>
                     <div className="hero-visual">
@@ -136,28 +111,28 @@ export default function Home() {
                             <div className="stat-card">
                                 <div className="stat-icon"><FaStar /></div>
                                 <div className="stat-number"><Counter end={35} suffix="+" /></div>
-                                <div className="stat-label">Années d'Expérience</div>
+                                <div className="stat-label">{t('home.yearsExp')}</div>
                             </div>
                         </ScrollReveal>
                         <ScrollReveal delay={100}>
                             <div className="stat-card">
                                 <div className="stat-icon"><FaHandshake /></div>
                                 <div className="stat-number"><Counter end={200} suffix="+" /></div>
-                                <div className="stat-label">Clients Satisfaits</div>
+                                <div className="stat-label">{t('home.happyClients')}</div>
                             </div>
                         </ScrollReveal>
                         <ScrollReveal delay={200}>
                             <div className="stat-card">
                                 <div className="stat-icon"><FaTools /></div>
                                 <div className="stat-number"><Counter end={15} suffix="" /></div>
-                                <div className="stat-label">Gouvernorats Couverts</div>
+                                <div className="stat-label">{t('home.govCovered')}</div>
                             </div>
                         </ScrollReveal>
                         <ScrollReveal delay={300}>
                             <div className="stat-card">
                                 <div className="stat-icon"><FaBolt /></div>
                                 <div className="stat-number"><Counter end={1000} suffix="+" /></div>
-                                <div className="stat-label">Projets Réalisés</div>
+                                <div className="stat-label">{t('home.projectsDone')}</div>
                             </div>
                         </ScrollReveal>
                     </div>
@@ -169,9 +144,9 @@ export default function Home() {
                 <div className="container">
                     <ScrollReveal>
                         <div className="section-title">
-                            <div className="label">Ce que nous faisons</div>
-                            <h2>Nos Services Professionnels</h2>
-                            <p>Une gamme complète de solutions électriques pour tous vos besoins industriels et bâtiments.</p>
+                            <div className="label">{t('home.whatWeDo')}</div>
+                            <h2>{t('home.ourProServices')}</h2>
+                            <p>{t('home.servicesSubtitle')}</p>
                         </div>
                     </ScrollReveal>
                     <div className="services-grid">
@@ -182,7 +157,7 @@ export default function Home() {
                                     <h3>{service.title}</h3>
                                     <p>{service.desc}</p>
                                     <Link to="/services" className="service-link">
-                                        En savoir plus <FaChevronRight />
+                                        {t('home.learnMore')} <FaChevronRight />
                                     </Link>
                                 </div>
                             </ScrollReveal>
@@ -190,7 +165,7 @@ export default function Home() {
                     </div>
                     <div className="services-cta">
                         <Link to="/services" className="btn btn-navy">
-                            Voir Tous Nos Services <FaChevronRight />
+                            {t('home.viewAllServices')} <FaChevronRight />
                         </Link>
                     </div>
                 </div>
@@ -201,9 +176,9 @@ export default function Home() {
                 <div className="container">
                     <ScrollReveal>
                         <div className="section-title">
-                            <div className="label">Ils nous font confiance</div>
-                            <h2>Nos Partenaires & Clients</h2>
-                            <p>Contrats cadres avec les plus grandes institutions tunisiennes.</p>
+                            <div className="label">{t('home.theyTrustUs')}</div>
+                            <h2>{t('home.ourPartners')}</h2>
+                            <p>{t('home.partnersSubtitle')}</p>
                         </div>
                     </ScrollReveal>
                     <ScrollReveal>
@@ -217,7 +192,7 @@ export default function Home() {
                     </ScrollReveal>
                     <div className="clients-cta">
                         <Link to="/clients" className="btn btn-primary">
-                            Toutes Nos Références <FaChevronRight />
+                            {t('home.allReferences')} <FaChevronRight />
                         </Link>
                     </div>
                 </div>
@@ -229,14 +204,14 @@ export default function Home() {
                     <ScrollReveal>
                         <div className="cta-box">
                             <div className="cta-content">
-                                <h2>Quelque soit votre problème, nous avons la solution!</h2>
-                                <p>Besoin d'une intervention rapide? Notre équipe est disponible 24/7 pour tous vos besoins électriques.</p>
+                                <h2>{t('home.ctaTitle')}</h2>
+                                <p>{t('home.ctaSubtitle')}</p>
                                 <div className="cta-actions">
                                     <a href="tel:+21620832832" className="btn btn-primary">
-                                        <FaPhoneAlt /> Appeler: 20 832 832
+                                        <FaPhoneAlt /> {t('home.ctaCall')}: 20 832 832
                                     </a>
                                     <Link to="/contact" className="btn btn-outline">
-                                        Demander un Devis
+                                        {t('home.ctaQuote')}
                                     </Link>
                                 </div>
                             </div>

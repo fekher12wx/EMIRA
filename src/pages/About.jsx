@@ -1,65 +1,86 @@
 import { FaAward, FaUsers, FaHistory, FaPhoneAlt, FaEnvelope, FaBolt, FaCheckCircle } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../i18n/LanguageContext'
 import ScrollReveal from '../components/ScrollReveal'
 import './About.css'
 
-const timeline = [
-    { year: '1987', title: 'Fondation', desc: 'Création de EMIRA SARL à Mégrine, spécialisée en maintenance électrique.' },
-    { year: '1990s', title: 'Expansion', desc: 'Premiers contrats cadres avec la STEG et les institutions gouvernementales.' },
-    { year: '2000s', title: 'Croissance', desc: 'Extension des activités à 15 gouvernorats. Contrats avec Tunisie Télécom, ONAS, ONT.' },
-    { year: '2010s', title: 'Diversification', desc: 'Ajout des services de qualité de puissance, batteries filtrées et économie d\'énergie.' },
-    { year: 'Aujourd\'hui', title: 'Leader', desc: 'Plus de 35 ans d\'expertise, équipe qualifiée, interventions rapides 24/7.' },
-]
-
-const team = [
-    {
-        name: 'Maher ZOUARI',
-        role: 'Gérant',
-        phone: '20 832 832 / 50 832 259',
-        icon: <FaUsers />,
-    },
-    {
-        name: 'Imen Maaoui',
-        role: 'Ingénieur INSAT',
-        phone: '52 515 171',
-        icon: <FaAward />,
-    },
-    {
-        name: 'Habib ben AMOR',
-        role: 'Technicien Supérieur Génie Élec.',
-        phone: '98 286 558 / 53 227 260',
-        icon: <FaUsers />,
-    },
-]
+const timelineData = {
+    fr: [
+        { year: '1987', title: 'Fondation', desc: 'Création de EMIRA SARL à Mégrine, spécialisée en maintenance électrique.' },
+        { year: '1990s', title: 'Expansion', desc: 'Premiers contrats cadres avec la STEG et les institutions gouvernementales.' },
+        { year: '2000s', title: 'Croissance', desc: 'Extension des activités à 15 gouvernorats. Contrats avec Tunisie Télécom, ONAS, ONT.' },
+        { year: '2010s', title: 'Diversification', desc: "Ajout des services de qualité de puissance, batteries filtrées et économie d'énergie." },
+        { year: "Aujourd'hui", title: 'Leader', desc: "Plus de 35 ans d'expertise, équipe qualifiée, interventions rapides 24/7." },
+    ],
+    en: [
+        { year: '1987', title: 'Foundation', desc: 'Creation of EMIRA SARL in Megrine, specialized in electrical maintenance.' },
+        { year: '1990s', title: 'Expansion', desc: 'First framework contracts with STEG and government institutions.' },
+        { year: '2000s', title: 'Growth', desc: 'Extension of activities to 15 governorates. Contracts with Tunisie Télécom, ONAS, ONT.' },
+        { year: '2010s', title: 'Diversification', desc: 'Added power quality services, filtered batteries and energy savings.' },
+        { year: 'Today', title: 'Leader', desc: 'Over 35 years of expertise, qualified team, rapid 24/7 interventions.' },
+    ],
+}
 
 const certifications = [
     {
         title: 'Agrément B2/C3',
-        desc: 'Ministère de l\'Équipement et de l\'Habitat',
+        desc: { fr: "Ministère de l'Équipement et de l'Habitat", en: 'Ministry of Equipment and Housing' },
         icon: <FaAward />,
     },
     {
         title: 'Agréée STEG',
-        desc: 'Société Tunisienne de l\'Électricité et du Gaz',
+        desc: { fr: "Société Tunisienne de l'Électricité et du Gaz", en: 'Tunisian Electricity and Gas Company' },
         icon: <FaCheckCircle />,
     },
     {
         title: 'SARL — 150.000 DT',
-        desc: 'Société à Responsabilité Limitée au capital de 150.000 DT',
+        desc: { fr: 'Société à Responsabilité Limitée au capital de 150.000 DT', en: 'Limited Liability Company with a capital of 150,000 DT' },
         icon: <FaBolt />,
     },
 ]
 
+const team = [
+    { name: 'Maher ZOUARI', role: { fr: 'Gérant', en: 'Manager' }, phone: '20 832 832 / 50 832 259', icon: <FaUsers /> },
+    { name: 'Imen Maaoui', role: { fr: 'Ingénieur INSAT', en: 'INSAT Engineer' }, phone: '52 515 171', icon: <FaAward /> },
+    { name: 'Habib ben AMOR', role: { fr: 'Technicien Supérieur Génie Élec.', en: 'Senior Electrical Technician' }, phone: '98 286 558 / 53 227 260', icon: <FaUsers /> },
+]
+
 export default function About() {
+    const { language, t } = useLanguage()
+    const timeline = timelineData[language] || timelineData.fr
+
+    const aboutP1 = language === 'en'
+        ? "Founded in 1987, <strong>EMIRA</strong> (Electro Maintenance Intervention Rapide) is a Tunisian company specialized in electrical installations, industrial maintenance and emergency repairs."
+        : "Fondée en 1987, <strong>EMIRA</strong> (Electro Maintenance Intervention Rapide) est une société tunisienne spécialisée dans les installations électriques, la maintenance industrielle et le dépannage d'urgence."
+
+    const aboutP2 = language === 'en'
+        ? 'Based in Megrine on Route de Sousse Km6, we operate throughout the entire Tunisian territory with a qualified team of engineers and technicians.'
+        : "Basée à Mégrine sur la Route de Sousse Km6, nous intervenons à travers tout le territoire tunisien avec une équipe qualifiée d'ingénieurs et de techniciens."
+
+    const aboutP3 = language === 'en'
+        ? '"Whatever your problem, we have the solution"'
+        : '"Quelque soit votre problème, nous avons la solution"'
+
+    const ourHistoryLabel = language === 'en' ? 'Our History' : 'Notre Histoire'
+    const aboutTitle = language === 'en' ? "Over 35 years of electrical expertise" : "Plus de 35 ans d'expertise électrique"
+    const ourMotto = language === 'en' ? 'Our motto: ' : 'Notre devise : '
+    const govs = language === 'en' ? '15 Governorates' : '15 Gouvernorats'
+    const timelineLabel = language === 'en' ? 'Our Journey' : 'Notre Parcours'
+    const timelineTitle = language === 'en' ? "EMIRA's History" : "L'histoire d'EMIRA"
+    const teamLabel = language === 'en' ? 'Our Team' : 'Notre Équipe'
+    const teamTitle = language === 'en' ? 'The Leaders' : 'Les Responsables'
+    const teamSubtitle = language === 'en' ? 'A qualified team at your service.' : 'Une équipe qualifiée à votre service.'
+    const certLabel = language === 'en' ? 'Our Certifications' : 'Nos Agréments'
+    const certTitle = language === 'en' ? 'Certifications & Approvals' : 'Certifications & Agréments'
+
     return (
         <div className="about-page">
             {/* Header */}
             <section className="page-header">
                 <div className="page-header-bg"></div>
                 <div className="container page-header-content">
-                    <h1>À Propos de <span className="text-red">EMIRA</span></h1>
-                    <p>صيانة الكترو كهربائية و تدخلات سريعة</p>
-                    <p>Electro Maintenance Intervention Rapide — Depuis 1987</p>
+                    <h1>{t('about.pageTitle')}<span className="text-red"> {t('about.pageTitleHighlight')}</span></h1>
+                    <p>{t('about.pageSubtitle')}</p>
                 </div>
             </section>
 
@@ -74,37 +95,16 @@ export default function About() {
                         </ScrollReveal>
                         <ScrollReveal delay={100}>
                             <div className="about-text-side">
-                                <div className="label"><FaBolt /> Notre Histoire</div>
-                                <h2>Plus de 35 ans d'expertise électrique</h2>
-                                <p>
-                                    Fondée en 1987, <strong>EMIRA</strong> (Electro Maintenance Intervention Rapide)
-                                    est une société tunisienne spécialisée dans les installations électriques,
-                                    la maintenance industrielle et le dépannage d'urgence.
-                                </p>
-                                <p>
-                                    Basée à Mégrine sur la Route de Sousse Km6, nous intervenons à travers
-                                    tout le territoire tunisien avec une équipe qualifiée d'ingénieurs et de techniciens.
-                                </p>
-                                <p>
-                                    Notre devise : <em>"Quelque soit votre problème, nous avons la solution"</em>
-                                </p>
+                                <div className="label"><FaBolt /> {ourHistoryLabel}</div>
+                                <h2>{aboutTitle}</h2>
+                                <p dangerouslySetInnerHTML={{ __html: aboutP1 }} />
+                                <p>{aboutP2}</p>
+                                <p>{ourMotto}<em>{aboutP3}</em></p>
                                 <div className="about-highlights">
-                                    <div className="highlight">
-                                        <FaCheckCircle />
-                                        <span>Agrément B2/C3</span>
-                                    </div>
-                                    <div className="highlight">
-                                        <FaCheckCircle />
-                                        <span>Agréée STEG</span>
-                                    </div>
-                                    <div className="highlight">
-                                        <FaCheckCircle />
-                                        <span>15 Gouvernorats</span>
-                                    </div>
-                                    <div className="highlight">
-                                        <FaCheckCircle />
-                                        <span>Urgence 24/7</span>
-                                    </div>
+                                    <div className="highlight"><FaCheckCircle /><span>{t('about.highlight1')}</span></div>
+                                    <div className="highlight"><FaCheckCircle /><span>{t('about.highlight2')}</span></div>
+                                    <div className="highlight"><FaCheckCircle /><span>{govs}</span></div>
+                                    <div className="highlight"><FaCheckCircle /><span>{t('about.highlight4')}</span></div>
                                 </div>
                             </div>
                         </ScrollReveal>
@@ -117,8 +117,8 @@ export default function About() {
                 <div className="container">
                     <ScrollReveal>
                         <div className="section-title">
-                            <div className="label">Notre Parcours</div>
-                            <h2>L'histoire d'EMIRA</h2>
+                            <div className="label">{timelineLabel}</div>
+                            <h2>{timelineTitle}</h2>
                         </div>
                     </ScrollReveal>
                     <div className="timeline">
@@ -142,9 +142,9 @@ export default function About() {
                 <div className="container">
                     <ScrollReveal>
                         <div className="section-title">
-                            <div className="label">Notre Équipe</div>
-                            <h2>Les Responsables</h2>
-                            <p>Une équipe qualifiée à votre service.</p>
+                            <div className="label">{teamLabel}</div>
+                            <h2>{teamTitle}</h2>
+                            <p>{teamSubtitle}</p>
                         </div>
                     </ScrollReveal>
                     <div className="team-grid">
@@ -153,7 +153,7 @@ export default function About() {
                                 <div className="team-card">
                                     <div className="team-avatar">{member.icon}</div>
                                     <h3>{member.name}</h3>
-                                    <span className="team-role">{member.role}</span>
+                                    <span className="team-role">{member.role[language] || member.role.fr}</span>
                                     <a href={`tel:+216${member.phone.split(' / ')[0].replace(/\s/g, '')}`} className="team-phone">
                                         <FaPhoneAlt /> {member.phone}
                                     </a>
@@ -169,8 +169,8 @@ export default function About() {
                 <div className="container">
                     <ScrollReveal>
                         <div className="section-title">
-                            <div className="label">Nos Agréments</div>
-                            <h2>Certifications & Agréments</h2>
+                            <div className="label">{certLabel}</div>
+                            <h2>{certTitle}</h2>
                         </div>
                     </ScrollReveal>
                     <div className="cert-grid">
@@ -179,7 +179,7 @@ export default function About() {
                                 <div className="cert-card">
                                     <div className="cert-icon">{cert.icon}</div>
                                     <h3>{cert.title}</h3>
-                                    <p>{cert.desc}</p>
+                                    <p>{cert.desc[language] || cert.desc.fr}</p>
                                 </div>
                             </ScrollReveal>
                         ))}

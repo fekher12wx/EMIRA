@@ -1,46 +1,51 @@
 import { useState } from 'react'
 import { FaPhone, FaFax, FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaClock, FaCheckCircle, FaTimes, FaBolt, FaTools, FaCog, FaPlug, FaIndustry, FaShieldAlt, FaTachometerAlt, FaLeaf, FaWrench, FaHardHat } from 'react-icons/fa'
 import { HiLightningBolt } from 'react-icons/hi'
-import emailjs from '@emailjs/browser'
+import { useLanguage } from '../i18n/LanguageContext'
 import ScrollReveal from '../components/ScrollReveal'
 import './Contact.css'
 
-const servicesList = [
-    { id: 'install_mt_bt', label: 'Installation Électrique MT/BT', icon: <FaBolt /> },
-    { id: 'armoires', label: 'Armoires & Coffrets Électriques', icon: <FaTools /> },
-    { id: 'rebobinage', label: 'Rebobinage Moteurs & Alternateurs', icon: <FaCog /> },
-    { id: 'transformateurs', label: 'Postes de Transformation MT/BT', icon: <FaPlug /> },
-    { id: 'depannage', label: 'Assistance & Dépannage Industriel', icon: <FaIndustry /> },
-    { id: 'groupes', label: 'Groupes Électrogènes', icon: <HiLightningBolt /> },
-    { id: 'qualite', label: 'Qualité de Puissance & Harmoniques', icon: <FaTachometerAlt /> },
-    { id: 'energie', label: 'Économie d\'Énergie', icon: <FaLeaf /> },
-    { id: 'maintenance', label: 'Maintenance Générale', icon: <FaWrench /> },
-    { id: 'travaux_neufs', label: 'Travaux Neufs', icon: <FaHardHat /> },
-    { id: 'equipement', label: 'Équipement Électrique MT/BT', icon: <FaShieldAlt /> },
-    { id: 'main_oeuvre', label: 'Location de Main d\'Œuvre', icon: <FaTools /> },
-]
-
-// ── EmailJS Configuration ──
-const EMAILJS_SERVICE_ID = 'service_abc123'
-const EMAILJS_TEMPLATE_ID = 'template_2riz65j'
-const EMAILJS_PUBLIC_KEY = 'MgeYOJUHpcIvrHUqs'
+const servicesListData = {
+    fr: [
+        { id: 'install_mt_bt', label: 'Installation Électrique MT/BT', icon: <FaBolt /> },
+        { id: 'armoires', label: 'Armoires & Coffrets Électriques', icon: <FaTools /> },
+        { id: 'rebobinage', label: 'Rebobinage Moteurs & Alternateurs', icon: <FaCog /> },
+        { id: 'transformateurs', label: 'Postes de Transformation MT/BT', icon: <FaPlug /> },
+        { id: 'depannage', label: 'Assistance & Dépannage Industriel', icon: <FaIndustry /> },
+        { id: 'groupes', label: 'Groupes Électrogènes', icon: <HiLightningBolt /> },
+        { id: 'qualite', label: 'Qualité de Puissance & Harmoniques', icon: <FaTachometerAlt /> },
+        { id: 'energie', label: "Économie d'Énergie", icon: <FaLeaf /> },
+        { id: 'maintenance', label: 'Maintenance Générale', icon: <FaWrench /> },
+        { id: 'travaux_neufs', label: 'Travaux Neufs', icon: <FaHardHat /> },
+        { id: 'equipement', label: 'Équipement Électrique MT/BT', icon: <FaShieldAlt /> },
+        { id: 'main_oeuvre', label: "Location de Main d'Œuvre", icon: <FaTools /> },
+    ],
+    en: [
+        { id: 'install_mt_bt', label: 'MV/LV Electrical Installation', icon: <FaBolt /> },
+        { id: 'armoires', label: 'Electrical Cabinets & Enclosures', icon: <FaTools /> },
+        { id: 'rebobinage', label: 'Motor & Alternator Rewinding', icon: <FaCog /> },
+        { id: 'transformateurs', label: 'MV/LV Transformation Stations', icon: <FaPlug /> },
+        { id: 'depannage', label: 'Industrial Troubleshooting', icon: <FaIndustry /> },
+        { id: 'groupes', label: 'Power Generators', icon: <HiLightningBolt /> },
+        { id: 'qualite', label: 'Power Quality & Harmonics', icon: <FaTachometerAlt /> },
+        { id: 'energie', label: 'Energy Savings', icon: <FaLeaf /> },
+        { id: 'maintenance', label: 'General Maintenance', icon: <FaWrench /> },
+        { id: 'travaux_neufs', label: 'New Construction', icon: <FaHardHat /> },
+        { id: 'equipement', label: 'MV/LV Electrical Equipment', icon: <FaShieldAlt /> },
+        { id: 'main_oeuvre', label: 'Labor Rental', icon: <FaTools /> },
+    ],
+}
 
 export default function Contact() {
+    const { language, t } = useLanguage()
+    const servicesList = servicesListData[language] || servicesListData.fr
+
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
     const [submitted, setSubmitted] = useState(false)
     const [sending, setSending] = useState(false)
     const [error, setError] = useState(false)
     const [showServiceModal, setShowServiceModal] = useState(false)
     const [selectedServices, setSelectedServices] = useState([])
-
-    const subjectLabels = {
-        devis: 'Demande de Devis',
-        intervention: "Demande d'Intervention",
-        maintenance: 'Contrat de Maintenance',
-        info: "Demande d'Information",
-        urgence: 'Urgence',
-        autre: 'Autre',
-    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -52,22 +57,32 @@ export default function Contact() {
             .map(s => s.label)
 
         try {
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                from_name: formData.name,
-                from_email: formData.email,
-                phone: formData.phone || 'Non renseigné',
-                subject: subjectLabels[formData.subject] || formData.subject,
-                message: formData.message,
-                services: selectedLabels.length > 0 ? selectedLabels.join(' • ') : 'Aucun service spécifique',
-                date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            }, EMAILJS_PUBLIC_KEY)
+            const response = await fetch('http://localhost:5000/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone || 'Non renseigné',
+                    subject: formData.subject,
+                    message: formData.message,
+                    services: selectedLabels.length > 0 ? selectedLabels.join(' • ') : 'Aucun service spécifique',
+                }),
+            })
 
-            setSubmitted(true)
-            setTimeout(() => setSubmitted(false), 6000)
-            setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
-            setSelectedServices([])
+            const data = await response.json()
+
+            if (data.success) {
+                setSubmitted(true)
+                setTimeout(() => setSubmitted(false), 6000)
+                setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
+                setSelectedServices([])
+            } else {
+                setError(true)
+                setTimeout(() => setError(false), 5000)
+            }
         } catch (err) {
-            console.error('EmailJS Error:', err)
+            console.error('Error:', err)
             setError(true)
             setTimeout(() => setError(false), 5000)
         } finally {
@@ -78,8 +93,6 @@ export default function Contact() {
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData({ ...formData, [name]: value })
-
-        // Show service modal when "Demande de Devis" is selected
         if (name === 'subject' && value === 'devis') {
             setShowServiceModal(true)
         }
@@ -102,11 +115,18 @@ export default function Contact() {
         setFormData(prev => ({
             ...prev,
             message: prev.message
-                ? `${prev.message}\n\nServices demandés: ${selectedLabels}`
-                : `Services demandés: ${selectedLabels}`
+                ? `${prev.message}\n\n${language === 'en' ? 'Requested services' : 'Services demandés'}: ${selectedLabels}`
+                : `${language === 'en' ? 'Requested services' : 'Services demandés'}: ${selectedLabels}`
         }))
         setShowServiceModal(false)
     }
+
+    const selectedLabel = language === 'en' ? 'Selected services:' : 'Services sélectionnés:'
+    const modifyBtn = language === 'en' ? '+ Modify' : '+ Modifier'
+    const modalSubtitle = language === 'en' ? 'Check the services you would like a quote for.' : 'Cochez les services pour lesquels vous souhaitez un devis.'
+    const hoursValue = language === 'en' ? 'Mon - Sat: 8:00 AM - 6:00 PM' : 'Lun - Sam: 8h00 - 18h00'
+    const urgencies = language === 'en' ? 'Emergencies: 24/7' : 'Urgences: 24/7'
+    const urgencyLabel = language === 'en' ? '24/7 Emergency' : 'Urgences 24/7'
 
     return (
         <div className="contact-page">
@@ -114,8 +134,8 @@ export default function Contact() {
             <section className="page-header">
                 <div className="page-header-bg"></div>
                 <div className="container page-header-content">
-                    <h1>Contactez-<span className="text-red">Nous</span></h1>
-                    <p>Nous sommes à votre disposition pour toute demande</p>
+                    <h1>{t('contact.pageTitle')}<span className="text-red">{t('contact.pageTitleHighlight')}</span></h1>
+                    <p>{t('contact.pageSubtitle')}</p>
                 </div>
             </section>
 
@@ -126,70 +146,52 @@ export default function Contact() {
                         {/* Contact Info */}
                         <ScrollReveal>
                             <div className="contact-info">
-                                <h2>Nos Coordonnées</h2>
-                                <p className="info-subtitle">
-                                    N'hésitez pas à nous contacter pour toute demande de devis,
-                                    d'information ou d'intervention.
-                                </p>
+                                <h2>{t('contact.infoTitle')}</h2>
+                                <p className="info-subtitle">{t('contact.infoSubtitle')}</p>
 
                                 <div className="info-cards">
                                     <div className="info-card">
-                                        <div className="info-icon">
-                                            <FaMapMarkerAlt />
-                                        </div>
+                                        <div className="info-icon"><FaMapMarkerAlt /></div>
                                         <div>
-                                            <h4>Adresse</h4>
+                                            <h4>{t('contact.address')}</h4>
                                             <p>Route de Sousse Km6<br />Mégrine 2033, Tunisie</p>
                                         </div>
                                     </div>
-
                                     <div className="info-card">
-                                        <div className="info-icon">
-                                            <FaPhone />
-                                        </div>
+                                        <div className="info-icon"><FaPhone /></div>
                                         <div>
-                                            <h4>Téléphone</h4>
+                                            <h4>{t('contact.phone')}</h4>
                                             <a href="tel:+21671432099">71 432 099</a>
                                         </div>
                                     </div>
-
                                     <div className="info-card">
-                                        <div className="info-icon">
-                                            <FaFax />
-                                        </div>
+                                        <div className="info-icon"><FaFax /></div>
                                         <div>
-                                            <h4>Fax</h4>
+                                            <h4>{t('contact.fax')}</h4>
                                             <p>71 433 458</p>
                                         </div>
                                     </div>
-
                                     <div className="info-card">
-                                        <div className="info-icon">
-                                            <FaEnvelope />
-                                        </div>
+                                        <div className="info-icon"><FaEnvelope /></div>
                                         <div>
-                                            <h4>Email</h4>
+                                            <h4>{t('contact.email')}</h4>
                                             <a href="mailto:emira@emira.tn">emira@emira.tn</a><br />
                                             <a href="mailto:emira.maher@yahoo.com">emira.maher@yahoo.com</a>
                                         </div>
                                     </div>
-
                                     <div className="info-card">
-                                        <div className="info-icon">
-                                            <FaClock />
-                                        </div>
+                                        <div className="info-icon"><FaClock /></div>
                                         <div>
-                                            <h4>Horaires</h4>
-                                            <p>Lun - Sam: 8h00 - 18h00<br />Urgences: 24/7</p>
+                                            <h4>{t('contact.hours')}</h4>
+                                            <p>{hoursValue}<br />{urgencies}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Emergency Box */}
                                 <div className="emergency-box">
                                     <FaPhoneAlt className="emergency-icon" />
                                     <div>
-                                        <span className="emergency-label">Urgences 24/7</span>
+                                        <span className="emergency-label">{urgencyLabel}</span>
                                         <a href="tel:+21620832832" className="emergency-number">20 832 832</a>
                                         <span className="emergency-sep"> / </span>
                                         <a href="tel:+21650832259" className="emergency-number">50 832 259</a>
@@ -201,86 +203,56 @@ export default function Contact() {
                         {/* Contact Form */}
                         <ScrollReveal delay={100}>
                             <div className="contact-form-wrap">
-                                <h2>Envoyez-nous un message</h2>
-                                <p className="form-subtitle">Remplissez le formulaire et nous vous répondrons dans les plus brefs délais.</p>
+                                <h2>{t('contact.formTitle')}</h2>
+                                <p className="form-subtitle">{t('contact.formSubtitle')}</p>
 
                                 {submitted && (
                                     <div className="success-message">
                                         <FaCheckCircle />
-                                        <span>Votre message a été envoyé avec succès! Nous vous contacterons bientôt.</span>
+                                        <span>{t('contact.successMsg')}</span>
                                     </div>
                                 )}
 
                                 {error && (
                                     <div className="error-message">
                                         <FaTimes />
-                                        <span>Erreur lors de l'envoi. Veuillez réessayer ou nous contacter par téléphone.</span>
+                                        <span>{t('contact.errorMsg')}</span>
                                     </div>
                                 )}
 
                                 <form onSubmit={handleSubmit} className="contact-form">
                                     <div className="form-row">
                                         <div className="form-group">
-                                            <label htmlFor="name">Nom Complet *</label>
-                                            <input
-                                                type="text"
-                                                id="name"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                placeholder="Votre nom"
-                                                required
-                                            />
+                                            <label htmlFor="name">{t('contact.labelName')} *</label>
+                                            <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder={t('contact.placeholderName')} required />
                                         </div>
                                         <div className="form-group">
-                                            <label htmlFor="email">Email *</label>
-                                            <input
-                                                type="email"
-                                                id="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                placeholder="votre@email.com"
-                                                required
-                                            />
+                                            <label htmlFor="email">{t('contact.labelEmail')} *</label>
+                                            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder={t('contact.placeholderEmail')} required />
                                         </div>
                                     </div>
                                     <div className="form-row">
                                         <div className="form-group">
-                                            <label htmlFor="phone">Téléphone</label>
-                                            <input
-                                                type="tel"
-                                                id="phone"
-                                                name="phone"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                placeholder="XX XXX XXX"
-                                            />
+                                            <label htmlFor="phone">{t('contact.labelPhone')}</label>
+                                            <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={t('contact.placeholderPhone')} />
                                         </div>
                                         <div className="form-group">
-                                            <label htmlFor="subject">Sujet *</label>
-                                            <select
-                                                id="subject"
-                                                name="subject"
-                                                value={formData.subject}
-                                                onChange={handleChange}
-                                                required
-                                            >
-                                                <option value="">Sélectionnez un sujet</option>
-                                                <option value="devis">Demande de Devis</option>
-                                                <option value="intervention">Demande d'Intervention</option>
-                                                <option value="maintenance">Contrat de Maintenance</option>
-                                                <option value="info">Demande d'Information</option>
-                                                <option value="urgence">Urgence</option>
-                                                <option value="autre">Autre</option>
+                                            <label htmlFor="subject">{t('contact.labelSubject')} *</label>
+                                            <select id="subject" name="subject" value={formData.subject} onChange={handleChange} required>
+                                                <option value="">{t('contact.selectSubject')}</option>
+                                                <option value="devis">{t('contact.subjectDevis')}</option>
+                                                <option value="intervention">{t('contact.subjectIntervention')}</option>
+                                                <option value="maintenance">{t('contact.subjectMaintenance')}</option>
+                                                <option value="info">{t('contact.subjectInfo')}</option>
+                                                <option value="urgence">{t('contact.subjectUrgence')}</option>
+                                                <option value="autre">{t('contact.subjectAutre')}</option>
                                             </select>
                                         </div>
                                     </div>
 
-                                    {/* Selected Services Tags */}
                                     {selectedServices.length > 0 && (
                                         <div className="selected-services">
-                                            <label>Services sélectionnés:</label>
+                                            <label>{selectedLabel}</label>
                                             <div className="service-tags">
                                                 {selectedServices.map(id => {
                                                     const service = servicesList.find(s => s.id === id)
@@ -293,31 +265,19 @@ export default function Contact() {
                                                         </span>
                                                     )
                                                 })}
-                                                <button
-                                                    type="button"
-                                                    className="add-service-btn"
-                                                    onClick={() => setShowServiceModal(true)}
-                                                >
-                                                    + Modifier
+                                                <button type="button" className="add-service-btn" onClick={() => setShowServiceModal(true)}>
+                                                    {modifyBtn}
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
                                     <div className="form-group full">
-                                        <label htmlFor="message">Message *</label>
-                                        <textarea
-                                            id="message"
-                                            name="message"
-                                            value={formData.message}
-                                            onChange={handleChange}
-                                            placeholder="Décrivez votre besoin..."
-                                            rows="5"
-                                            required
-                                        />
+                                        <label htmlFor="message">{t('contact.labelMessage')} *</label>
+                                        <textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder={t('contact.placeholderMessage')} rows="5" required />
                                     </div>
                                     <button type="submit" className="btn btn-primary submit-btn" disabled={sending}>
-                                        {sending ? 'Envoi en cours...' : 'Envoyer le Message'}
+                                        {sending ? t('contact.sending') : t('contact.send')}
                                     </button>
                                 </form>
                             </div>
@@ -347,12 +307,12 @@ export default function Contact() {
                 <div className="modal-overlay" onClick={() => setShowServiceModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Sélectionnez les services souhaités</h3>
+                            <h3>{t('contact.modalTitle')}</h3>
                             <button className="modal-close" onClick={() => setShowServiceModal(false)}>
                                 <FaTimes />
                             </button>
                         </div>
-                        <p className="modal-subtitle">Cochez les services pour lesquels vous souhaitez un devis.</p>
+                        <p className="modal-subtitle">{modalSubtitle}</p>
                         <div className="modal-services-grid">
                             {servicesList.map(service => (
                                 <label
@@ -366,18 +326,16 @@ export default function Contact() {
                                     />
                                     <span className="modal-service-icon">{service.icon}</span>
                                     <span className="modal-service-label">{service.label}</span>
-                                    <span className="modal-service-check">
-                                        <FaCheckCircle />
-                                    </span>
+                                    <span className="modal-service-check"><FaCheckCircle /></span>
                                 </label>
                             ))}
                         </div>
                         <div className="modal-footer">
                             <span className="modal-count">
-                                {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} sélectionné{selectedServices.length !== 1 ? 's' : ''}
+                                {selectedServices.length} {t('contact.servicesSelected')}
                             </span>
                             <button className="btn btn-primary" onClick={confirmServices}>
-                                Confirmer la sélection
+                                {t('contact.modalConfirm')}
                             </button>
                         </div>
                     </div>

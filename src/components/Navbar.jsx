@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { HiMenu, HiX } from 'react-icons/hi'
+import { HiMenu, HiX, HiMoon, HiSun } from 'react-icons/hi'
+import { useLanguage } from '../i18n/LanguageContext'
 import './Navbar.css'
-
-const navLinks = [
-    { path: '/', label: 'Accueil' },
-    { path: '/about', label: 'À Propos' },
-    { path: '/services', label: 'Services' },
-    { path: '/clients', label: 'Références' },
-    { path: '/contact', label: 'Contact' },
-]
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
+    const [darkMode, setDarkMode] = useState(() => {
+        return localStorage.getItem('emira-theme') === 'dark'
+    })
+    const [langOpen, setLangOpen] = useState(false)
     const location = useLocation()
+    const { language, changeLanguage, t } = useLanguage()
+
+    const navLinks = [
+        { path: '/', label: t('nav.home') },
+        { path: '/about', label: t('nav.about') },
+        { path: '/services', label: t('nav.services') },
+        { path: '/clients', label: t('nav.references') },
+        { path: '/contact', label: t('nav.contact') },
+    ]
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -24,7 +30,25 @@ export default function Navbar() {
 
     useEffect(() => {
         setIsOpen(false)
+        setLangOpen(false)
     }, [location])
+
+    useEffect(() => {
+        if (darkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark')
+            localStorage.setItem('emira-theme', 'dark')
+        } else {
+            document.documentElement.removeAttribute('data-theme')
+            localStorage.setItem('emira-theme', 'light')
+        }
+    }, [darkMode])
+
+    const langs = [
+        { code: 'fr', label: 'FR', flag: '🇫🇷' },
+        { code: 'en', label: 'EN', flag: '🇬🇧' },
+    ]
+
+    const currentLang = langs.find(l => l.code === language)
 
     return (
         <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
@@ -49,9 +73,47 @@ export default function Navbar() {
                     ))}
                 </div>
 
-                <button className="navbar-toggle" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <HiX /> : <HiMenu />}
-                </button>
+                <div className="navbar-actions">
+                    {/* Language Selector */}
+                    <div className="lang-selector">
+                        <button
+                            className="lang-toggle"
+                            onClick={() => setLangOpen(!langOpen)}
+                        >
+                            <span className="lang-flag">{currentLang?.flag}</span>
+                            <span className="lang-code">{currentLang?.label}</span>
+                        </button>
+                        {langOpen && (
+                            <div className="lang-dropdown">
+                                {langs.map(lang => (
+                                    <button
+                                        key={lang.code}
+                                        className={`lang-option ${language === lang.code ? 'active' : ''}`}
+                                        onClick={() => {
+                                            changeLanguage(lang.code)
+                                            setLangOpen(false)
+                                        }}
+                                    >
+                                        <span className="lang-flag">{lang.flag}</span>
+                                        <span>{lang.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <button
+                        className="theme-toggle"
+                        onClick={() => setDarkMode(!darkMode)}
+                        title={darkMode ? 'Mode clair' : 'Mode sombre'}
+                    >
+                        {darkMode ? <HiSun /> : <HiMoon />}
+                    </button>
+
+                    <button className="navbar-toggle" onClick={() => setIsOpen(!isOpen)}>
+                        {isOpen ? <HiX /> : <HiMenu />}
+                    </button>
+                </div>
             </div>
         </nav>
     )
