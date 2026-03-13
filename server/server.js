@@ -1,40 +1,20 @@
 const express = require('express')
 const cors = require('cors')
 const nodemailer = require('nodemailer')
-const fs = require('fs')
-const path = require('path')
 const crypto = require('crypto')
+const bcrypt = require('bcryptjs')
+const db = require('./db')
 
 const app = express()
 const PORT = 5000
 
 // ── Config ──
-const ADMIN_PASSWORD = 'emira2024admin'
 const TOKEN_SECRET = crypto.randomBytes(32).toString('hex')
 const activeTokens = new Set()
-
-// ── Data file paths ──
-const DATA_DIR = path.join(__dirname, 'data')
-const SERVICES_FILE = path.join(DATA_DIR, 'services.json')
-const CLIENTS_FILE = path.join(DATA_DIR, 'clients.json')
-const TEAM_FILE = path.join(DATA_DIR, 'team.json')
 
 // ── Middleware ──
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))
-
-// ── Helper: read/write JSON ──
-function readJSON(filePath) {
-    try {
-        return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-    } catch {
-        return null
-    }
-}
-
-function writeJSON(filePath, data) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
-}
 
 // ── Auth Middleware ──
 function requireAuth(req, res, next) {
@@ -55,7 +35,8 @@ function requireAuth(req, res, next) {
 
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body
-    if (password === ADMIN_PASSWORD) {
+    const admin = db.prepare('SELECT * FROM admins WHERE username = ?').get('admin')
+    if (admin && bcrypt.compareSync(password, admin.password_hash)) {
         const token = crypto.randomBytes(48).toString('hex')
         activeTokens.add(token)
         console.log('🔐 Admin logged in')
@@ -76,14 +57,56 @@ app.post('/api/admin/logout', requireAuth, (req, res) => {
 // ══════════════════════════════════════
 
 app.get('/api/services', (req, res) => {
-    const data = readJSON(SERVICES_FILE)
-    if (!data) return res.status(500).json({ success: false, error: 'Erreur lecture données' })
-    res.json(data)
+    try {
+        const rows = db.prepare('SELECT * FROM services ORDER BY id').all()
+        const services = rows.map(s => {
+            const features = db.prepare(
+                'SELECT text_fr, text_en FROM service_features WHERE service_id = ? ORDER BY sort_order'
+            ).all(s.id)
+            return {
+                id: s.id,
+                iconName: s.icon_name,
+                title: { fr: s.title_fr, en: s.title_en },
+                desc: { fr: s.desc_fr, en: s.desc_en },
+                features: {
+                    fr: features.map(f => f.text_fr),
+                    en: features.map(f => f.text_en)
+                }
+            }
+        })
+        res.json({ services })
+    } catch (error) {
+        console.error('❌ Error reading services:', error)
+        res.status(500).json({ success: false, error: 'Erreur lecture données' })
+    }
 })
 
 app.put('/api/services', requireAuth, (req, res) => {
     try {
-        writeJSON(SERVICES_FILE, req.body)
+        const { services } = req.body
+        const updateAll = db.transaction(() => {
+            db.prepare('DELETE FROM service_features').run()
+            db.prepare('DELETE FROM services').run()
+
+            const insertService = db.prepare(
+                'INSERT INTO services (id, icon_name, title_fr, title_en, desc_fr, desc_en) VALUES (?, ?, ?, ?, ?, ?)'
+            )
+            const insertFeature = db.prepare(
+                'INSERT INTO service_features (service_id, text_fr, text_en, sort_order) VALUES (?, ?, ?, ?)'
+            )
+
+            for (const s of services) {
+                insertService.run(s.id, s.iconName, s.title.fr, s.title.en, s.desc.fr, s.desc.en)
+                if (s.features) {
+                    const frFeatures = s.features.fr || []
+                    const enFeatures = s.features.en || []
+                    for (let i = 0; i < frFeatures.length; i++) {
+                        insertFeature.run(s.id, frFeatures[i], enFeatures[i] || frFeatures[i], i)
+                    }
+                }
+            }
+        })
+        updateAll()
         console.log('✅ Services updated')
         res.json({ success: true, message: 'Services mis à jour' })
     } catch (error) {
@@ -97,14 +120,59 @@ app.put('/api/services', requireAuth, (req, res) => {
 // ══════════════════════════════════════
 
 app.get('/api/clients', (req, res) => {
-    const data = readJSON(CLIENTS_FILE)
-    if (!data) return res.status(500).json({ success: false, error: 'Erreur lecture données' })
-    res.json(data)
+    try {
+        const publicRows = db.prepare('SELECT * FROM public_clients ORDER BY id').all()
+        const privateRows = db.prepare('SELECT * FROM private_clients ORDER BY id').all()
+        const regionRows = db.prepare('SELECT name FROM regions ORDER BY id').all()
+
+        const mapClient = c => ({
+            id: c.id,
+            name: { fr: c.name_fr, en: c.name_en },
+            desc: { fr: c.desc_fr, en: c.desc_en },
+            iconName: c.icon_name
+        })
+
+        res.json({
+            publicClients: publicRows.map(mapClient),
+            privateClients: privateRows.map(mapClient),
+            regions: regionRows.map(r => r.name)
+        })
+    } catch (error) {
+        console.error('❌ Error reading clients:', error)
+        res.status(500).json({ success: false, error: 'Erreur lecture données' })
+    }
 })
 
 app.put('/api/clients', requireAuth, (req, res) => {
     try {
-        writeJSON(CLIENTS_FILE, req.body)
+        const { publicClients, privateClients, regions } = req.body
+        const updateAll = db.transaction(() => {
+            // ── Public clients ──
+            db.prepare('DELETE FROM public_clients').run()
+            const insertPub = db.prepare(
+                'INSERT INTO public_clients (id, icon_name, name_fr, name_en, desc_fr, desc_en) VALUES (?, ?, ?, ?, ?, ?)'
+            )
+            for (const c of publicClients) {
+                insertPub.run(c.id, c.iconName, c.name.fr, c.name.en, c.desc.fr, c.desc.en)
+            }
+
+            // ── Private clients ──
+            db.prepare('DELETE FROM private_clients').run()
+            const insertPriv = db.prepare(
+                'INSERT INTO private_clients (id, icon_name, name_fr, name_en, desc_fr, desc_en) VALUES (?, ?, ?, ?, ?, ?)'
+            )
+            for (const c of privateClients) {
+                insertPriv.run(c.id, c.iconName, c.name.fr, c.name.en, c.desc.fr, c.desc.en)
+            }
+
+            // ── Regions ──
+            db.prepare('DELETE FROM regions').run()
+            const insertRegion = db.prepare('INSERT INTO regions (name) VALUES (?)')
+            for (const r of regions) {
+                insertRegion.run(r)
+            }
+        })
+        updateAll()
         console.log('✅ Clients updated')
         res.json({ success: true, message: 'Clients mis à jour' })
     } catch (error) {
@@ -118,14 +186,35 @@ app.put('/api/clients', requireAuth, (req, res) => {
 // ══════════════════════════════════════
 
 app.get('/api/team', (req, res) => {
-    const data = readJSON(TEAM_FILE)
-    if (!data) return res.status(500).json({ success: false, error: 'Erreur lecture données' })
-    res.json(data)
+    try {
+        const rows = db.prepare('SELECT * FROM team ORDER BY id').all()
+        const team = rows.map(t => ({
+            id: t.id,
+            name: t.name,
+            role: { fr: t.role_fr, en: t.role_en },
+            phone: t.phone,
+            iconName: t.icon_name
+        }))
+        res.json({ team })
+    } catch (error) {
+        console.error('❌ Error reading team:', error)
+        res.status(500).json({ success: false, error: 'Erreur lecture données' })
+    }
 })
 
 app.put('/api/team', requireAuth, (req, res) => {
     try {
-        writeJSON(TEAM_FILE, req.body)
+        const { team } = req.body
+        const updateAll = db.transaction(() => {
+            db.prepare('DELETE FROM team').run()
+            const insertTeam = db.prepare(
+                'INSERT INTO team (id, name, role_fr, role_en, phone, icon_name) VALUES (?, ?, ?, ?, ?, ?)'
+            )
+            for (const t of team) {
+                insertTeam.run(t.id, t.name, t.role.fr, t.role.en, t.phone, t.iconName)
+            }
+        })
+        updateAll()
         console.log('✅ Team updated')
         res.json({ success: true, message: 'Équipe mise à jour' })
     } catch (error) {
